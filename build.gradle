@@ -34,7 +34,7 @@ jar {
 
 publishing{
     publications{
-        recp(MavenPublication){
+        recp-java(MavenPublication){
             from components.java
         }
     }
