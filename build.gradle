@@ -33,6 +33,11 @@ jar {
 }
 
 publishing{
+    publications{
+        recp(MavenPublication){
+            from components.java
+        }
+    }
     repositories{
         mavenLocal()
     }
