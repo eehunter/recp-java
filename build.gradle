@@ -34,7 +34,8 @@ jar {
 
 publishing{
     publications{
-        recp-java(MavenPublication){
+        maven(MavenPublication){
+            artifactId = 'recp-java'
             from components.java
         }
     }
