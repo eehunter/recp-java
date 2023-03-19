@@ -1,4 +1,2 @@
-before_install:
+jdk:
   - openjdk18
-env:
-  ENVIRONMENT: "production"
