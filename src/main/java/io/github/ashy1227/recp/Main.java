@@ -33,7 +33,7 @@ public class Main {
 		printRecipe(brownRice);
 		
 		try {
-			new RECPFile(brownRice).writeToPath(Paths.get("src/main/resources/brownRice.recp"));
+			brownRice.writeToPath(Paths.get("src/main/resources/brownRice.recp"));
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
