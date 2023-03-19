@@ -4,17 +4,17 @@ public class Ingredient {
 	public Unit unit;
 	public Fraction amount;
 	public String ingredient;
-
+	
 	public Ingredient(Unit unit, Fraction amount, String ingredient) {
 		this.unit = unit;
 		this.amount = amount;
 		this.ingredient = ingredient;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-
+		
 		if(amount.getWholePart() != 0) {
 			sb.append(amount.getWholePart());
 		}
@@ -26,7 +26,7 @@ public class Ingredient {
 		sb.append(unit.name);
 		sb.append(' ');
 		sb.append(this.ingredient);
-
+		
 		return sb.toString();
 	}
 }

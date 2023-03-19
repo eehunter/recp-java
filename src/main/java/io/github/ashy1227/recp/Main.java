@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Main {
-	
 	public static void main(String[] args) {
 		Recipe rice = Recipe.readFromPath(Paths.get("src/main/resources/rice.recp"));
 		
