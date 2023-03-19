@@ -1,5 +1,6 @@
 plugins {
     id "java"
+    id 'maven-publish'
 }
 
 group "io.github.ashy1227"
@@ -29,4 +30,10 @@ jar {
 		attributes('Implementation-Title': project.name,
 				'Implementation-Version': project.version)
 	}
+}
+
+publishing{
+    repositories{
+        mavenLocal()
+    }
 }
