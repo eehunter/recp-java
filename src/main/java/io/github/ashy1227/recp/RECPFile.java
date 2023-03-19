@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -24,13 +26,106 @@ public class RECPFile {
 	}
 
 	/**
-	 * Construct a RECPFile object from an array of bytes
+	 * Construct a RECPFile from a Recipe
+	 * @param charSet desired character encoding. If unsure, use other constructor
+	 */
+	public RECPFile(Recipe recipe, Charset charSet) {
+		this.chunks = new ArrayList<>();
+		ByteBuffer b;
+		int s;
+
+		// META
+		b = ByteBuffer.allocate(8);
+		if (charSet.equals(StandardCharsets.UTF_8)) {
+			b.putLong(TextEncoding.UTF_8);
+		} else if (charSet.equals(StandardCharsets.UTF_16)) {
+			b.putLong(TextEncoding.UTF_16);
+		} else if (charSet.equals(StandardCharsets.ISO_8859_1)) {
+			b.putLong(TextEncoding.ISO_8859);
+		} else if (charSet.equals(StandardCharsets.US_ASCII)) {
+			b.putLong(TextEncoding.ASCII);
+		} else {
+			throw new IllegalArgumentException("Invalid charset. Valid charsets are: StandardCharsets.UTF_8, StandardCharsets.UTF_16, StandardCharsets.ISO_8859_1, StandardCharsets.US_ASCII");
+		}
+		chunks.add(new Chunk(ChunkType.META, b.array()));
+
+		// INGR
+		s = 4;
+		for(Ingredient ingredient : recipe.ingredients) {
+			s += 9 + ingredient.ingredient.getBytes(charSet).length;
+		}
+		b = ByteBuffer.allocate(s);
+		b.putInt(recipe.ingredients.size());
+		for(Ingredient ingredient : recipe.ingredients) {
+			b.put(ingredient.unit.id);
+			b.putShort(ingredient.amount.numerator);
+			b.putShort(ingredient.amount.denominator);
+			b.putInt(ingredient.ingredient.getBytes(charSet).length);
+			b.put(ingredient.ingredient.getBytes(charSet));
+		}
+		chunks.add(new Chunk(ChunkType.INGR, b.array()));
+
+		// PROC
+		s = 4;
+		for(String string : recipe.procedure) {
+			s += 4 + string.getBytes(charSet).length;
+		}
+		b = ByteBuffer.allocate(s);
+		b.putInt(recipe.procedure.size());
+		for(String string : recipe.procedure) {
+			b.putInt(string.getBytes(charSet).length);
+			b.put(string.getBytes(charSet));
+		}
+		chunks.add(new Chunk(ChunkType.PROC, b.array()));
+
+		// END
+		chunks.add(new Chunk(ChunkType.END, new byte[] {}));
+	}
+	/**
+	 * Construct a RECPFile from a Recipe, with UTF-8 character encoding
+	 */
+	public RECPFile(Recipe recipe) {
+		this(recipe, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Format into a RECP-formatted byte array
+	 * @return a RECP-formatted byte array
+	 */
+	public byte[] toByteArray() {
+		int fileLen = 4;
+		for(Chunk c : chunks) {
+			fileLen += 8 + c.data.length;
+		}
+
+		ByteBuffer b = ByteBuffer.allocate(fileLen);
+		b.putInt(SIGNATURE);
+		for(Chunk c : chunks) {
+			b.putInt(c.data.length);
+			b.putInt(c.type);
+			b.put(c.data);
+		}
+
+		return b.array();
+	}
+	
+	/**
+	 * Write to a file on disk
+	 * @param path path to the file to be written
+	 * @throws IOException if error occurs writing file
+	 */
+	public void writeToPath(Path path) throws IOException {
+		Files.write(path, this.toByteArray());
+	}
+
+	/**
+	 * Create a RECPFile object from an array of bytes
 	 * @param file bytes of RECP file
 	 * @return RECPFile object containing a list of chunks from the file
-	 * @throws IllegalArgumentException if the file is invalid (No header, CRC Check fails, wrong chunk ordering..)
+	 * @throws IllegalArgumentException if the file is invalid (No header, wrong chunk ordering, missing required chunks)
 	 * @throws BufferUnderflowException if no END chunk is found, if file is empty, or file ends before chunk ends
 	 */
-	public static RECPFile readFromBytes(byte[] file) {
+	public static RECPFile fromByteArray(byte[] file) {
 		ByteBuffer b = ByteBuffer.wrap(file);
 
 		int signature = b.getInt();
@@ -74,7 +169,7 @@ public class RECPFile {
 	}
 
 	/**
-	 * Create a RECPFile object from a filepath
+	 * Create a RECPFile object from a Path
 	 * @param path filepath of RECP file
 	 * @return readFromBytes(Files.readAllBytes(path)) or null if there's an IOException
 	 */
@@ -88,7 +183,7 @@ public class RECPFile {
 			return null;
 		}
 
-		return readFromBytes(bytes);
+		return fromByteArray(bytes);
 	}
 
 	public static class Chunk {

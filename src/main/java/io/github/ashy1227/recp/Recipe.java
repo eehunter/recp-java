@@ -3,6 +3,7 @@ package io.github.ashy1227.recp;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -82,6 +83,24 @@ public class Recipe {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Write to RECP file on disk
+	 * @param path path to the file to be written
+	 * @param charSet character encoding to be used for strings
+	 * @throws IOException if error occurs writing file
+	 */
+	public void writeToPath(Path path, Charset charSet) throws IOException {
+		new RECPFile(this, charSet).writeToPath(path);
+	}
+	/**
+	 * Write to RECP file on disk
+	 * @param path path to the file to be written
+	 * @throws IOException if error occurs writing file
+	 */
+	public void writeToPath(Path path) throws IOException {
+		this.writeToPath(path, StandardCharsets.UTF_8);
 	}
 
 	/**
