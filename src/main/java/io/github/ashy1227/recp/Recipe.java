@@ -15,12 +15,28 @@ import java.util.List;
  * A recipe that can be decoded from or encoded into a RECP file
  */
 public class Recipe {
-	public List<Ingredient> ingredients;
-	public List<String> procedure;
-
-	public Recipe(List<Ingredient> ingredients, List<String> procedure) {
+	@NotNull public List<Ingredient> ingredients;
+	@NotNull public List<String> procedure;
+	
+	@Nullable public String title;
+	@Nullable public String description;
+	@Nullable public String longDescription;
+	@Nullable public List<String> tags;
+	
+	public Recipe(@NotNull List<Ingredient> ingredients, @NotNull List<String> procedure) {
 		this.ingredients = ingredients;
 		this.procedure = procedure;
+	}
+	public Recipe(@NotNull List<Ingredient> ingredients, @NotNull List<String> procedure, String title, String description, String longDescription, List<String> tags) {
+		this(ingredients, procedure);
+		this.title = title;
+		this.description = description;
+		this.longDescription = longDescription;
+		this.tags = tags;
+	}
+	public Recipe() {
+		this.ingredients = new ArrayList<>();
+		this.procedure = new ArrayList<>();
 	}
 	/**
 	 * Decode a RECPFile into a Recipe
@@ -79,7 +95,39 @@ public class Recipe {
 						this.procedure.add(new String(str, charSet));
 					}
 				}
+				case RECPFile.ChunkType.titl -> {
+					int size = b.getInt();
+					byte[] str = new byte[size];
+					b.get(str);
+					this.title = new String(str, charSet);
+				}
+				case RECPFile.ChunkType.desc -> {
+					int size = b.getInt();
+					byte[] str = new byte[size];
+					b.get(str);
+					this.description = new String(str, charSet);
+				}
+				case RECPFile.ChunkType.ldsc -> {
+					int size = b.getInt();
+					byte[] str = new byte[size];
+					b.get(str);
+					this.longDescription = new String(str, charSet);
+				}
+				case RECPFile.ChunkType.tags -> {
+					int length = b.getInt();
+					this.tags = new ArrayList<>(length);
+					
+					for(int i = 0; i < length; i++) {
+						byte size =  b.get();
+						
+						byte[] str = new byte[size];
+						b.get(str);
+						
+						this.tags.add(new String(str, charSet));
+					}
+				}
 				default -> {
+				
 				}
 			}
 		}

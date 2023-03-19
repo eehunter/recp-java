@@ -55,6 +55,7 @@ public class RECPFile {
 			s += 9 + ingredient.ingredient.getBytes(charSet).length;
 		}
 		b = ByteBuffer.allocate(s);
+		
 		b.putInt(recipe.ingredients.size());
 		for(Ingredient ingredient : recipe.ingredients) {
 			b.put(ingredient.unit.id);
@@ -71,12 +72,63 @@ public class RECPFile {
 			s += 4 + string.getBytes(charSet).length;
 		}
 		b = ByteBuffer.allocate(s);
+		
 		b.putInt(recipe.procedure.size());
 		for(String string : recipe.procedure) {
 			b.putInt(string.getBytes(charSet).length);
 			b.put(string.getBytes(charSet));
 		}
 		chunks.add(new Chunk(ChunkType.PROC, b.array()));
+		
+		// titl
+		if(recipe.title != null) {
+			s = 4 + recipe.title.getBytes(charSet).length;
+			b = ByteBuffer.allocate(s);
+			
+			b.putInt(recipe.title.getBytes(charSet).length);
+			b.put(recipe.title.getBytes(charSet));
+			
+			chunks.add(new Chunk(ChunkType.titl, b.array()));
+		}
+		
+		// desc
+		if(recipe.description != null) {
+			s = 4 + recipe.description.getBytes(charSet).length;
+			b = ByteBuffer.allocate(s);
+			
+			b.putInt(recipe.description.getBytes(charSet).length);
+			b.put(recipe.description.getBytes(charSet));
+			
+			chunks.add(new Chunk(ChunkType.desc, b.array()));
+		}
+		
+		// ldsc
+		if(recipe.description != null) {
+			s = 4 + recipe.longDescription.getBytes(charSet).length;
+			b = ByteBuffer.allocate(s);
+			
+			b.putInt(recipe.longDescription.getBytes(charSet).length);
+			b.put(recipe.longDescription.getBytes(charSet));
+			
+			chunks.add(new Chunk(ChunkType.ldsc, b.array()));
+		}
+		
+		// tags
+		if(recipe.tags != null) {
+			s = 4;
+			for(String string : recipe.tags) {
+				s += 1 + string.getBytes(charSet).length;
+			}
+			b = ByteBuffer.allocate(s);
+			
+			b.putInt(recipe.tags.size());
+			for(String string : recipe.tags) {
+				b.put((byte)string.getBytes(charSet).length);
+				b.put(string.getBytes(charSet));
+			}
+			
+			chunks.add(new Chunk(ChunkType.ldsc, b.array()));
+		}
 
 		// END
 		chunks.add(new Chunk(ChunkType.END, new byte[] {}));
@@ -207,6 +259,11 @@ public class RECPFile {
 		public static final int INGR = 0x494E4752;
 		public static final int PROC = 0x50524F43;
 		public static final int END = 0x454E4400;
+		
+		public static final int titl = 0x7469746C;
+		public static final int desc = 0x64657363;
+		public static final int ldsc = 0x6C647363;
+		public static final int tags = 0x74616773;
 
 		/**
 		 * Number of required chunk types
